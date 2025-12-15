@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>농구 리그 경기표 & 순위</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --card2:#0f1730;
+      --txt:#f2f5ff;
+      --muted:#aeb8de;
+      --line:rgba(255,255,255,.10);
+      --good:#34d399;
+      --bad:#fb7185;
+      --accent:#60a5fa;
+      --warn:#fbbf24;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, rgba(96,165,250,.25), transparent 60%),
+                  radial-gradient(900px 500px at 10% 10%, rgba(52,211,153,.18), transparent 55%),
+                  radial-gradient(900px 500px at 90% 20%, rgba(251,113,133,.16), transparent 55%),
+                  var(--bg);
+      color:var(--txt);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 18px 14px 28px;
+    }
+    header{
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(11,16,32,.85), rgba(11,16,32,.35));
+      border-bottom: 1px solid var(--line);
+      padding: 14px 14px 12px;
+      margin: 0 -14px 14px;
+    }
+    .title{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: -.3px;
+      line-height: 1.2;
+    }
+    .sub{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+      color: var(--txt);
+      font-size: 12px;
+      white-space: nowrap;
+      height: fit-content;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(96,165,250,.18);
+    }
+
+    .grid{
+      display:grid;
+      gap: 14px;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(96,165,250,.10), transparent);
+    }
+    .card .hd .k{
+      font-size: 14px;
+      color: var(--muted);
+      margin:0;
+    }
+    .card .hd .v{
+      margin: 6px 0 0;
+      font-size: 18px;
+      letter-spacing: -.2px;
+      font-weight: 800;
+    }
+    .card .bd{ padding: 12px 14px 14px; }
+
+    .standings{
+      display:grid;
+      gap: 10px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns: 44px 1fr;
+      gap: 10px;
+      padding: 12px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(18,26,51,.55);
+    }
+    .rank{
+      width:44px;height:44px;
+      display:grid;place-items:center;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 16px;
+      background: rgba(96,165,250,.16);
+      border: 1px solid rgba(96,165,250,.25);
+    }
+    .row:nth-child(1) .rank{ background: rgba(251,191,36,.18); border-color: rgba(251,191,36,.28); }
+    .row:nth-child(2) .rank{ background: rgba(148,163,184,.18); border-color: rgba(148,163,184,.26); }
+    .row:nth-child(3) .rank{ background: rgba(244,114,182,.14); border-color: rgba(244,114,182,.22); }
+
+    .teamline{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .teamname{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -.2px;
+      line-height: 1.1;
+      margin: 0;
+    }
+    .meta{
+      margin-top: 6px;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge.good{ border-color: rgba(52,211,153,.30); background: rgba(52,211,153,.12); color: #d1fae5; }
+    .badge.bad{ border-color: rgba(251,113,133,.30); background: rgba(251,113,133,.12); color: #ffe4e6; }
+    .badge.neutral{ border-color: rgba(96,165,250,.28); background: rgba(96,165,250,.12); color: #dbeafe; }
+
+    .dateGroup{
+      display:grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .dateTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--txt);
+      font-weight: 900;
+      letter-spacing: -.2px;
+    }
+    .dateTitle small{
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .match{
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(18,26,51,.55);
+      overflow:hidden;
+    }
+    .matchTop{
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+    }
+    .matchTop .left{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .matchTop .right{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .matchBody{
+      padding: 12px 12px 12px;
+      display:grid;
+      gap: 10px;
+    }
+    .pair{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items:center;
+    }
+    .team{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .team strong{
+      font-size: 18px;
+      line-height: 1.1;
+      letter-spacing: -.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .team .mini{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .scoreBox{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -.4px;
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      white-space: nowrap;
+    }
+    .scoreBox .sep{ color: var(--muted); font-weight: 800; }
+
+    .footnote{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+
+    /* 작은 화면 최적화 */
+    @media (max-width: 420px){
+      h1{ font-size: 20px; }
+      .team strong{ font-size: 17px; }
+      .scoreBox{ font-size: 20px; padding: 8px 10px; }
+      .rank{ width:42px; height:42px; }
+      .row{ grid-template-columns: 42px 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <div>
+          <h1>농구 경기 진행표</h1>
+          <div class="sub">일자 · 팀1 · 팀2 · 스코어 · 승/패 · 승점 · 현재 순위</div>
+        </div>
+        <div class="pill" id="summaryPill">
+          <span class="dot"></span>
+          <span id="summaryText">데이터 로딩</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+
+      <section class="card">
+        <div class="hd">
+          <p class="k">현재 순위 (승점 기준)</p>
+          <p class="v">Standings</p>
+        </div>
+        <div class="bd">
+          <div class="standings" id="standings"></div>
+          <div class="footnote" id="tieRule">
+            동률일 때는 <b>승점</b> → <b>승</b> → <b>득실차</b> → <b>득점</b> 순으로 정렬됩니다.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="hd">
+          <p class="k">경기 기록</p>
+          <p class="v">Games</p>
+        </div>
+        <div class="bd" id="games"></div>
+        <div class="bd" style="padding-top:0">
+          <div class="footnote">
+            ✅ 예시 데이터가 들어가 있습니다. 위쪽 <b>DATA 영역</b>의 games 배열만 수정하면 화면이 자동으로 바뀝니다.
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    /***********************
+     * DATA (여기만 수정)
+     ***********************/
+    const teams = ["김명준팀", "박기태팀", "홍서우팀", "최윤혁팀"];
+
+    // 승점 규칙(원하면 바꿔도 됨): 기본은 승 2점, 패 0점 (무승부 1점)
+    const pointRule = { win: 2, loss: 0, draw: 1 };
+
+    // games 예시:
+    // - date: "YYYY-MM-DD"
+    // - team1, team2: 팀명
+    // - score1, score2: 점수 (숫자)
+    // - points1, points2: 승점 (선택) → 없으면 pointRule로 자동 계산
+    const games = [
+      { date: "2025-12-4", team1: "박기태팀", team2: "홍서우팀", score1: 16, score2: 12 },
+      { date: "2025-12-5", team1: "최윤혁팀", team2: "홍서우팀", score1: 21, score2: 4 },
+      { date: "2025-12-12", team1: "박기태팀", team2: "최윤혁팀", score1: 10, score2: 18 },
+      { date: "2025-12-15", team1: "홍서우팀", team2: "김명준팀", score1: 11, score2: 11, points1: 1, points2: 1  },
+    ];
+
+    /***********************
+     * LOGIC
+     ***********************/
+    const $ = (sel) => document.querySelector(sel);
+
+    function fmtDate(iso){
+      // "2025-12-15" -> "12/15 (월)" 형태(요일은 브라우저 로케일/타임존 기준)
+      const d = new Date(iso + "T00:00:00");
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      const day = ["일","월","화","수","목","금","토"][d.getDay()];
+      return `${mm}/${dd} (${day})`;
+    }
+
+    function winnerInfo(g){
+      const {score1, score2} = g;
+      if (score1 === score2) return { result: "draw", winner: null, loser: null };
+      if (score1 > score2) return { result: "team1", winner: g.team1, loser: g.team2 };
+      return { result: "team2", winner: g.team2, loser: g.team1 };
+    }
+
+    function calcPointsForGame(g){
+      // points1/points2가 명시되면 그대로 사용
+      if (Number.isFinite(g.points1) && Number.isFinite(g.points2)) {
+        return { p1: g.points1, p2: g.points2 };
+      }
+      const info = winnerInfo(g);
+      if (info.result === "draw") return { p1: pointRule.draw, p2: pointRule.draw };
+      if (info.result === "team1") return { p1: pointRule.win, p2: pointRule.loss };
+      return { p1: pointRule.loss, p2: pointRule.win };
+    }
+
+    function buildStandings(){
+      const table = {};
+      teams.forEach(t => {
+        table[t] = { team: t, pts: 0, w: 0, l: 0, d: 0, pf: 0, pa: 0 };
+      });
+
+      games.forEach(g => {
+        // 팀 목록에 없더라도 자동 포함되게
+        [g.team1, g.team2].forEach(t=>{
+          if (!table[t]) table[t] = { team: t, pts: 0, w: 0, l: 0, d: 0, pf: 0, pa: 0 };
+        });
+
+        const {p1, p2} = calcPointsForGame(g);
+        const info = winnerInfo(g);
+
+        table[g.team1].pts += p1;
+        table[g.team2].pts += p2;
+
+        table[g.team1].pf += g.score1; table[g.team1].pa += g.score2;
+        table[g.team2].pf += g.score2; table[g.team2].pa += g.score1;
+
+        if (info.result === "draw") {
+          table[g.team1].d += 1; table[g.team2].d += 1;
+        } else if (info.result === "team1") {
+          table[g.team1].w += 1; table[g.team2].l += 1;
+        } else {
+          table[g.team2].w += 1; table[g.team1].l += 1;
+        }
+      });
+
+      const rows = Object.values(table).map(r => ({
+        ...r,
+        diff: r.pf - r.pa,
+        played: r.w + r.l + r.d
+      }));
+
+      // 승점 → 승 → 득실차 → 득점
+      rows.sort((a,b) => (
+        (b.pts - a.pts) ||
+        (b.w - a.w) ||
+        (b.diff - a.diff) ||
+        (b.pf - a.pf) ||
+        a.team.localeCompare(b.team, "ko")
+      ));
+
+      return rows;
+    }
+
+    function renderStandings(rows){
+      const root = $("#standings");
+      root.innerHTML = "";
+
+      rows.forEach((r, idx) => {
+        const formBadge =
+          r.w > r.l ? `<span class="badge good">상승 흐름</span>` :
+          r.w < r.l ? `<span class="badge bad">반등 필요</span>` :
+                      `<span class="badge neutral">팽팽</span>`;
+
+        const el = document.createElement("div");
+        el.className = "row";
+        el.innerHTML = `
+          <div class="rank">${idx+1}</div>
+          <div>
+            <div class="teamline">
+              <p class="teamname">${r.team}</p>
+              <span class="badge neutral">승점 ${r.pts}</span>
+            </div>
+            <div class="meta">
+              <span class="badge">${r.played}경기</span>
+              <span class="badge good">승 ${r.w}</span>
+              <span class="badge bad">패 ${r.l}</span>
+              <span class="badge">무 ${r.d}</span>
+              <span class="badge">득/실 ${r.pf}/${r.pa}</span>
+              <span class="badge">득실차 ${r.diff >= 0 ? "+" : ""}${r.diff}</span>
+              ${formBadge}
+            </div>
+          </div>
+        `;
+        root.appendChild(el);
+      });
+
+      // 상단 요약
+      const played = games.length;
+      const dates = [...new Set(games.map(g=>g.date))].length;
+      $("#summaryText").textContent = `총 ${dates}일 · ${played}경기`;
+    }
+
+    function renderGames(){
+      const root = $("#games");
+      root.innerHTML = "";
+
+      // 날짜별 그룹화
+      const map = {};
+      games.forEach(g => {
+        (map[g.date] ||= []).push(g);
+      });
+      const dates = Object.keys(map).sort();
+
+      dates.forEach(date => {
+        const group = document.createElement("div");
+        group.className = "dateGroup";
+
+        const dayGames = map[date];
+
+        const header = document.createElement("div");
+        header.className = "dateTitle";
+        header.innerHTML = `
+          <div>${fmtDate(date)}</div>
+          <small>${dayGames.length}경기</small>
+        `;
+        group.appendChild(header);
+
+        dayGames.forEach((g, i) => {
+          const info = winnerInfo(g);
+          const {p1, p2} = calcPointsForGame(g);
+
+          const badge =
+            info.result === "draw"
+              ? `<span class="badge neutral">무승부</span>`
+              : `<span class="badge good">승: ${info.winner}</span>
+                 <span class="badge bad">패: ${info.loser}</span>`;
+
+          const match = document.createElement("div");
+          match.className = "match";
+          match.innerHTML = `
+            <div class="matchTop">
+              <div class="left">#${i+1} 경기</div>
+              <div class="right">
+                ${badge}
+                <span class="badge">승점 ${g.team1}: ${p1}</span>
+                <span class="badge">승점 ${g.team2}: ${p2}</span>
+              </div>
+            </div>
+            <div class="matchBody">
+              <div class="pair">
+                <div class="team">
+                  <strong>${g.team1}</strong>
+                  <div class="mini">팀 1</div>
+                </div>
+
+                <div class="scoreBox" aria-label="score">
+                  <span>${g.score1}</span>
+                  <span class="sep">:</span>
+                  <span>${g.score2}</span>
+                </div>
+
+                <div class="team" style="text-align:right">
+                  <strong>${g.team2}</strong>
+                  <div class="mini">팀 2</div>
+                </div>
+              </div>
+            </div>
+          `;
+          group.appendChild(match);
+        });
+
+        root.appendChild(group);
+      });
+    }
+
+    function init(){
+      renderGames();
+      const standings = buildStandings();
+      renderStandings(standings);
+    }
+
+    init();
+  </script>
+</body>
+</html>
